@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: nutrigauss
+    runtime: python
+    plan: free
+    buildCommand: "echo sin dependencias"
+    startCommand: "python3 -u servidor.py"

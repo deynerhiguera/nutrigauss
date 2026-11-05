@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NutriGauss</title>
+  <meta name="description" content="Planificador de porciones por macronutrientes con el método de eliminación de Gauss.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232448B8'/%3E%3Cpath d='M9 7H6v18h3M23 7h3v18h-3' stroke='white' stroke-width='2.4' fill='none'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23F2B300'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="vendor/katex/katex.min.css">
+  <link rel="stylesheet" href="estilos.css">
+  <script src="vendor/katex/katex.min.js" defer></script>
+  <script src="vendor/plotly-gl3d.min.js" defer></script>
+  <script src="app.js" type="module"></script>
+</head>
+<body>
+  <header class="barra">
+    <div class="marca">
+      <span class="marca-nombre">NutriGauss</span>
+      <span class="marca-sub">Porciones por macronutrientes con eliminación de Gauss</span>
+    </div>
+    <nav class="pestanas" aria-label="Etapas">
+      <button class="pestana" data-vista="plantear" aria-current="page"><span class="pestana-num">1</span>Plantear</button>
+      <button class="pestana" data-vista="resolver" disabled><span class="pestana-num">2</span>Paso a paso</button>
+      <button class="pestana" data-vista="resultado" disabled><span class="pestana-num">3</span>Resultado</button>
+      <button class="pestana" data-vista="planos" disabled><span class="pestana-num">4</span>Planos en 3D</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- 1. PLANTEAR -->
+    <section class="vista vista-plantear" id="vista-plantear" data-vista="plantear">
+      <div class="plantear-texto">
+        <h1>¿Cuántos gramos sirvo de cada alimento?</h1>
+        <p>Elige tres alimentos y escribe tus metas. Cada alimento aporta proteína, carbohidratos y grasa a la vez, así que la comida es una combinación lineal de sus nutrientes. Las porciones x₁, x₂ y x₃ salen de un sistema 3x3 que resolvemos con el método de Gauss.</p>
+      </div>
+
+      <div class="ecuacion" id="ecuacion" aria-label="Sistema en forma de combinación lineal"></div>
+
+      <div class="plantear-acciones">
+        <button class="boton boton-principal" id="btn-resolver">Resolver con Gauss</button>
+        <button class="boton boton-texto" id="btn-ejemplo">Cargar ejemplo del documento</button>
+        <p class="aviso" id="aviso" role="alert" hidden></p>
+      </div>
+      <p class="nota-fuente">Composición por cada 100 g, aproximada a partir de FoodData Central (USDA). Proyecto académico: no reemplaza la orientación de un nutricionista.</p>
+    </section>
+
+    <!-- 2. PASO A PASO -->
+    <section class="vista vista-resolver" id="vista-resolver" data-vista="resolver" hidden>
+      <ol class="riel" id="riel" aria-label="Pasos del método"></ol>
+      <div class="paso">
+        <div class="paso-cabecera">
+          <p class="paso-contador" id="paso-contador"></p>
+          <div class="interruptor" role="group" aria-label="Formato de los números">
+            <button class="interruptor-op" data-exacto="false" aria-pressed="true">Decimales</button>
+            <button class="interruptor-op" data-exacto="true" aria-pressed="false">Fracciones exactas</button>
+          </div>
+        </div>
+        <h2 class="paso-titulo" id="paso-titulo" aria-live="polite"></h2>
+        <div class="hoja" id="hoja"></div>
+        <div class="explicacion" id="explicacion"></div>
+        <div class="paso-nav">
+          <button class="boton" id="btn-anterior">Anterior</button>
+          <button class="boton boton-principal" id="btn-siguiente">Siguiente</button>
+          <span class="atajo">También con las flechas ← → del teclado</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. RESULTADO -->
+    <section class="vista vista-resultado" id="vista-resultado" data-vista="resultado" hidden></section>
+
+    <!-- 4. PLANOS -->
+    <section class="vista vista-planos" id="vista-planos" data-vista="planos" hidden>
+      <div class="planos-texto">
+        <h2>Cada nutriente es un plano</h2>
+        <p>Cada ecuación reúne todas las combinaciones de porciones que cumplen la meta de un nutriente. La comida que cumple las tres metas es el punto donde se cortan los tres planos. Los ejes están en gramos de cada alimento. Arrastra para girar y usa la rueda del mouse para acercar.</p>
+        <ul class="planos-leyenda" id="planos-leyenda"></ul>
+      </div>
+      <div class="planos-grafico" id="grafico"></div>
+    </section>
+  </main>
+
+  <dialog class="dialogo" id="dialogo-alimento" aria-labelledby="dialogo-titulo">
+    <form method="dialog" id="form-alimento">
+      <h2 id="dialogo-titulo">Agregar un alimento</h2>
+      <p>Escribe la composición por cada 100 g. Puedes copiarla de la etiqueta nutricional.</p>
+      <label class="campo">Nombre<input name="nombre" required maxlength="40" autocomplete="off"></label>
+      <div class="campos-fila">
+        <label class="campo">Proteína (g)<input name="proteina" required inputmode="decimal"></label>
+        <label class="campo">Carbohidratos (g)<input name="carbohidratos" required inputmode="decimal"></label>
+        <label class="campo">Grasa (g)<input name="grasa" required inputmode="decimal"></label>
+      </div>
+      <p class="aviso" id="aviso-alimento" role="alert" hidden></p>
+      <div class="dialogo-acciones">
+        <button class="boton" value="cancelar" formnovalidate>Cancelar</button>
+        <button class="boton boton-principal" value="guardar">Agregar alimento</button>
+      </div>
+    </form>
+  </dialog>
+</body>
+</html>
